@@ -1,4 +1,7 @@
-# EVPN
+---
+title: EVPN
+draft: true
+---
 
 EVPN (Ethernet VPN) is a **networking technology** designed to provide highly scalable and flexible Layer 2 and Layer 3 virtual private network (VPN) services over IP/MPLS networks. It is defined in [RFC 7432](https://www.rfc-editor.org/rfc/rfc7432) and is commonly used in data centers, service provider networks, and enterprise WANs.
 
@@ -45,5 +48,5 @@ EVPN (Ethernet VPN) is a **networking technology** designed to provide highly sc
 4. **Enterprise WANs**:
    - Replaces traditional MPLS L2/L3 VPNs for branch office connectivity.
 
-## Vendor Specific
+### Vendor Specific
 * [[Arista BGP EVPN]]
