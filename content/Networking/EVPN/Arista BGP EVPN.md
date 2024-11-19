@@ -1,12 +1,15 @@
 ## Overview and Concepts
 
 ### Introduction
-Traditionally, Data Centers used lots of Layer 2 links that spanned entire racks, rows, cages, floors, for as far as the eye could see. These large L2 domains were not ideal for a data center, due to the slow convergence, unnecessary broadcasts, and difficulty in administering. To optimize the data center network, we needed to reduce the use of and reliance on layer 2 protocols such as Spanning Tree. The challenge, however, is the fact that Data Centers _need_ Layer 2 stretching from rack to rack, row to row, sometimes from data center to data center, not only for application requirements but also for fault tolerance and workload mobility. Numerous technologies have come forth to battle this limitation, such as TRILL, FabricPath, and VXLAN. Of these three, it is **Virtual Extensible LAN (VXLAN)** that has seen rapid adoption in modern data centers.
+
+Traditionally, Data Centers used lots of Layer 2 links that spanned entire racks, rows, cages, floors, for as far as the eye could see. These large L2 domains were not ideal for a data center, due to the slow convergence, unnecessary broadcasts, and difficulty in administering. To optimize the data center network, we needed to reduce the use of and reliance on layer 2 protocols such as Spanning Tree. The challenge, however, is the fact that Data Centers *need* Layer 2 stretching from rack to rack, row to row, sometimes from data center to data center, not only for application requirements but also for fault tolerance and workload mobility. Numerous technologies have come forth to battle this limitation, such as TRILL, FabricPath, and VXLAN. Of these three, it is **Virtual Extensible LAN (VXLAN)** that has seen rapid adoption in modern data centers.
 
 ### Quick overview of VXLAN
+
 VXLAN is a tunneling mechanism which can take a Layer 2 frame or a Layer 3 packet, encapsulate it with an IP header and route it to some other **VXLAN Tunnel Endpoint (VTEP)** for decapsulation. VXLAN is often referred to as MAC-in-IP because we fundamentally do just that – put a MAC address inside of an IP address. The VXLAN header includes a 24-bit field called the **VXLAN Network Identifier (VNI)**, which allows us to have up to 16 million layer 2 domain – much more than the 4096 limit with classic VLANs!
 
 Take the diagram below for example, where we have two hosts on the same VLAN, but the links between the racks are Layer 3 routed. The hosts can be on the same VLAN and reach each other (ping) at Layer 2 by encapsulating the traffic in VXLAN and delivering it to the appropriate switches.![vxlan1](https://i0.wp.com/overlaid.net/wp-content/uploads/2018/08/vxlan1.png?resize=700%2C534&ssl=1)
+
 1. Host 10.0.0.1 initiates ping to 10.0.0.2
 2. ICMP (ping) is encapsulated IP, with the source address set to 10.0.0.1 and destination set to 10.0.0.2
 3. IP is placed inside of an Ethernet header, with source MAC of f8be and destination MAC of a271
@@ -19,7 +22,9 @@ Take the diagram below for example, where we have two hosts on the same VLAN, bu
 We aren’t limited to just encapsulating L2 MACs – we can also encapsulate L3 IPs in VXLAN and deliver it to some remote VTEP. This flexibility is synonymous with MPLS L2VPNs and MPLS L3VPNs. More on this later.
 
 ### Leaf-Spine Topology
+
 VXLAN in a data center is most often coupled with a hierarchical 2-tier Leaf and Spine architecture, known as a Clos topology, where end-hosts connect to Leafs, and Leafs connect to Spines. It is a modular design that can scale horizontally as the end-hosts increase in volume, similar to the diagram below, where L3 point-to-point links form the underlying network in which an overlay protocol can ride, such as VXLAN. BGP is typically the protocol performing routing between all of these point-to-point links.![2-l3ls](https://i0.wp.com/overlaid.net/wp-content/uploads/2018/08/2-l3ls.png?resize=524%2C391&ssl=1)
+
 ## VXLAN Data Planes and Control Planes
 
 Traditionally, VXLAN tunnels are created between each Leaf switch (or a pair of leaf switches) using the default multicast control plane. Not a big deal if we had some small data center with just a couple of Leaf switches and a couple of Spines; we’d likely be just fine to use VXLAN natively without much concern for scale. However, once the data center starts expanding, we can quickly see how difficult it becomes to manage VXLAN using the flood-and-learn behavior of the multicast control plane.
@@ -82,6 +87,7 @@ A packet capture reveals the BGP update message sent from VTEP 1 (10.0.250.11) t
 
 Upon receiving the BGP Update message, VTEP 2 will install this MAC address in it’s CAM table since it is configured for this VNI and is importing the appropriate Route-Targets. We can see the MAC is learned from interface Vxlan1:
 
+```bash
 leaf-3#**sh mac add vlan 50**
           Mac Address Table
 ------------------------------------------------------------------
@@ -103,6 +109,7 @@ leaf-3#sh bgp evpn route-type mac-ip
         Network             Next Hop         Metric  LocPref Weight Path
  * >     **RD: 65001:100050 mac-ip 262e.ea16.9561**
                             10.0.255.11      -       100     0      65000 65001 i
+```
 
 At this point, you may be asking about VTEP 3 and 4. What happens to them? Well, both will receive BGP update, but since neither are configured for that VNI nor that VLAN, the MAC address will not get installed.
 
@@ -121,7 +128,7 @@ If you didn’t notice above in the packet capture, there is a field in the Type
 Data was not included in this field because the MAC learning example above was purely Layer 2. There were no Gateway SVIs configured; therefore no ARP entries existed. In many cases, you’ll want your hosts to have an IP gateway. In the case of Arista, typically each Leaf Pair is configured in a **Multi-chassis Link Aggregation Group (MLAG)**, with all hosts dual-connected to each Leaf. The Leaf Pair acts as the gateway for VLANs using an Anycast VARP SVI. For example, I may configure the following on all Leafs:
 
 int vlan 50
- ip address virtual 10.50.0.1/24
+ip address virtual 10.50.0.1/24
 
 Now our hosts can reach their local gateways.
 
@@ -132,8 +139,8 @@ Now, imagine these two hosts had never communicated with each other. If the host
 For example, a Leaf member of VTEP 1 has an ARP entry for its locally connected host, and an ARP entry for the remote host learned via VXLAN:
 
 leaf-1#show ip arp | in Vlan50
-10.50.0.10            N/A  262e.ea16.9561  Vlan50, Port-Channel1
-10.50.0.20              -  d6f7.f3ee.0e0b  Vlan50, Vxlan1
+10.50.0.10 N/A 262e.ea16.9561 Vlan50, Port-Channel1
+10.50.0.20 - d6f7.f3ee.0e0b Vlan50, Vxlan1
 
 This means when host 1 tries to ARP for host 2, the local VTEP can proxy the request, effectively suppressing the ARP messages. Cool stuff! For example, I added a 10.50.0.30 host to the network to show the advertisement of this IP address in the Type 2 route:
 
@@ -177,34 +184,34 @@ So, taking the Leafs that represent VTEP 1, our schema would look something like
 Leaf 1:
 
 router bgp 65001
- vrf green
-   rd 10.0.250.11:10007
-   route-target 7:10007 both
-   redistribute connected
- vrf blue
-   rd 10.0.250.11:10008
-   route-target 8:10008 both
-   redistribute connected
- vrf yellow
-   rd 10.0.250.11:10009
-   route-target 9:10009 both
-   redistribute connected
+vrf green
+rd 10.0.250.11:10007
+route-target 7:10007 both
+redistribute connected
+vrf blue
+rd 10.0.250.11:10008
+route-target 8:10008 both
+redistribute connected
+vrf yellow
+rd 10.0.250.11:10009
+route-target 9:10009 both
+redistribute connected
 
 Leaf 2:
 
 router bgp 65001
- vrf green
-   rd 10.0.250.12:10007
-   route-target 7:10007 both
-   redistribute connected
- vrf blue
-   rd 10.0.250.12:10008
-   route-target 8:10008 both
-   redistribute connected
- vrf yellow
-   rd 10.0.250.12:10009
-   route-target 9:10009 both
-   redistribute connected
+vrf green
+rd 10.0.250.12:10007
+route-target 7:10007 both
+redistribute connected
+vrf blue
+rd 10.0.250.12:10008
+route-target 8:10008 both
+redistribute connected
+vrf yellow
+rd 10.0.250.12:10009
+route-target 9:10009 both
+redistribute connected
 
 Back to our diagram, we could expect to see something like below. Take note that these VRFs only exist on the VTEPs. The Spine layer is completely unaware of this information – it is simply passing routes. It is up the Leafs to derive the RDs and import routes tagged with the appropriate route-targets.
 
@@ -221,18 +228,18 @@ vrf definition green
 ip routing vrf green
 
 router bgp 65001
-   vrf green
-      rd 10.0.250.11:10007
-      route-target both 7:10007
-      redistribute connected
+vrf green
+rd 10.0.250.11:10007
+route-target both 7:10007
+redistribute connected
 
 interface Vxlan1
-   vxlan vrf green vni 10007
+vxlan vrf green vni 10007
 
 vlan 7
 int vlan 7
- vrf forwarding green
- ip add virtual 10.7.0.1/24
+vrf forwarding green
+ip add virtual 10.7.0.1/24
 
 VTEP1 Leaf-2:
 
@@ -240,18 +247,18 @@ vrf definition green
 ip routing vrf green
 
 router bgp 65001
-   vrf green
-      rd 10.0.250.12:10007
-      route-target both 7:10007
-      redistribute connected
+vrf green
+rd 10.0.250.12:10007
+route-target both 7:10007
+redistribute connected
 
 interface Vxlan1
-   vxlan vrf green vni 10007
+vxlan vrf green vni 10007
 
 vlan 7
 int vlan 7
- vrf forwarding green
- ip add virtual 10.7.0.1/24
+vrf forwarding green
+ip add virtual 10.7.0.1/24
 
 VTEP2 Leaf-3:
 
@@ -259,18 +266,18 @@ vrf definition green
 ip routing vrf green
 
 router bgp 65002
-   vrf green
-      rd 10.0.250.13:10007
-      route-target both 7:10007
-      redistribute connected
+vrf green
+rd 10.0.250.13:10007
+route-target both 7:10007
+redistribute connected
 
 interface Vxlan1
-   vxlan vrf green vni 10007
+vxlan vrf green vni 10007
 
 vlan 170
 int vlan 170
- vrf forwarding green
- ip add virtual 10.170.0.1/24
+vrf forwarding green
+ip add virtual 10.170.0.1/24
 
 VTEP2 Leaf-4:
 
@@ -278,18 +285,18 @@ vrf definition green
 ip routing vrf green
 
 router bgp 65002
-   vrf green
-      rd 10.0.250.14:10007
-      route-target both 7:10007
-      redistribute connected
+vrf green
+rd 10.0.250.14:10007
+route-target both 7:10007
+redistribute connected
 
 interface Vxlan1
-   vxlan vrf green vni 10007
+vxlan vrf green vni 10007
 
 vlan 170
 int vlan 170
- vrf forwarding green
- ip add virtual 10.170.0.1/24
+vrf forwarding green
+ip add virtual 10.170.0.1/24
 
 And here from VTEP1 (Leaf-1) perspective, we can see the prefixes being learned from VTEP2. Notice that we have four routes to 10.170.0.0/24 because we have two Spines and two switches in the VTEP, allowing us to achieve ECMP:
 
@@ -299,16 +306,17 @@ Router identifier 10.0.250.11, local AS number 65001
 …
 
         Network             Next Hop         Metric  LocPref Weight Path
- * >     RD: 10.0.250.11:10007 ip-prefix 10.7.0.0/24
-                            -                -       -       0       i
- * >Ec   RD: 10.0.250.13:10007 ip-prefix 10.170.0.0/24
-                            10.0.255.12      -       100     0      65000 65002 i
- *  ec   RD: 10.0.250.13:10007 ip-prefix 10.170.0.0/24
-                            10.0.255.12      -       100     0      65000 65002 i
- * >Ec   RD: 10.0.250.14:10007 ip-prefix 10.170.0.0/24
-                            10.0.255.12      -       100     0      65000 65002 i
- *  ec   RD: 10.0.250.14:10007 ip-prefix 10.170.0.0/24
-                            10.0.255.12      -       100     0      65000 65002 i
+
+- >     RD: 10.0.250.11:10007 ip-prefix 10.7.0.0/24
+                           -                -       -       0       i
+- > Ec RD: 10.0.250.13:10007 ip-prefix 10.170.0.0/24
+                           10.0.255.12      -       100     0      65000 65002 i
+- ec RD: 10.0.250.13:10007 ip-prefix 10.170.0.0/24
+  10.0.255.12 - 100 0 65000 65002 i
+- > Ec RD: 10.0.250.14:10007 ip-prefix 10.170.0.0/24
+                           10.0.255.12      -       100     0      65000 65002 i
+- ec RD: 10.0.250.14:10007 ip-prefix 10.170.0.0/24
+  10.0.255.12 - 100 0 65000 65002 i
 
 Similar view from VTEP2:
 
@@ -316,17 +324,18 @@ leaf-3#**show bgp evpn route-type ip-prefix ipv4 vni 10007**
 BGP routing table information for VRF default
 Router identifier 10.0.250.13, local AS number 65002
 …
-        Network             Next Hop         Metric  LocPref Weight Path
- * >Ec   RD: 10.0.250.11:10007 ip-prefix 10.7.0.0/24
-                            10.0.255.11      -       100     0      65000 65001 i
- *  ec   RD: 10.0.250.11:10007 ip-prefix 10.7.0.0/24
-                            10.0.255.11      -       100     0      65000 65001 i
- * >Ec   RD: 10.0.250.12:10007 ip-prefix 10.7.0.0/24
-                            10.0.255.11      -       100     0      65000 65001 i
- *  ec   RD: 10.0.250.12:10007 ip-prefix 10.7.0.0/24
-                            10.0.255.11      -       100     0      65000 65001 i
- * >     RD: 10.0.250.13:10007 ip-prefix 10.170.0.0/24
-                            -                -       -       0       i
+Network Next Hop Metric LocPref Weight Path
+
+- > Ec RD: 10.0.250.11:10007 ip-prefix 10.7.0.0/24
+                           10.0.255.11      -       100     0      65000 65001 i
+- ec RD: 10.0.250.11:10007 ip-prefix 10.7.0.0/24
+  10.0.255.11 - 100 0 65000 65001 i
+- > Ec RD: 10.0.250.12:10007 ip-prefix 10.7.0.0/24
+                           10.0.255.11      -       100     0      65000 65001 i
+- ec RD: 10.0.250.12:10007 ip-prefix 10.7.0.0/24
+  10.0.255.11 - 100 0 65000 65001 i
+- >     RD: 10.0.250.13:10007 ip-prefix 10.170.0.0/24
+                           -                -       -       0       i
 
 A packet capture reveals VXLAN-encapsulated prefixes as type 5 EVPN routes:
 
@@ -337,21 +346,21 @@ Again, the routes are installed on the Leafs which are importing the routes, but
 leaf-1#**show ip route vrf green | b Gateway**
 Gateway of last resort is not set
 
- C      10.7.0.0/24 is directly connected, Vlan7
- B E    10.170.0.0/24 [200/0] via VTEP 10.0.255.12 VNI 10007 router-mac 0c:56:33:29:b2:0c
-                              via VTEP 10.0.255.12 VNI 10007 router-mac 0c:56:33:bc:22:bd
-
+C 10.7.0.0/24 is directly connected, Vlan7
+B E 10.170.0.0/24 [200/0] via VTEP 10.0.255.12 VNI 10007 router-mac 0c:56:33:29:b2:0c
+via VTEP 10.0.255.12 VNI 10007 router-mac 0c:56:33:bc:22:bd
 
 spine2#sho bgp evpn route-type ip-prefix ipv4 vni 10007 | b Network
-        Network             Next Hop         Metric  LocPref Weight Path
- * >     RD: 10.0.250.11:10007 ip-prefix 10.7.0.0/24
-                            10.0.255.11      -       100     0      65001 i
- * >     RD: 10.0.250.12:10007 ip-prefix 10.7.0.0/24
-                            10.0.255.11      -       100     0      65001 i
- * >     RD: 10.0.250.13:10007 ip-prefix 10.170.0.0/24
-                            10.0.255.12      -       100     0      65002 i
- * >     RD: 10.0.250.14:10007 ip-prefix 10.170.0.0/24
-                            10.0.255.12      -       100     0      65002 i
+Network Next Hop Metric LocPref Weight Path
+
+- >     RD: 10.0.250.11:10007 ip-prefix 10.7.0.0/24
+                           10.0.255.11      -       100     0      65001 i
+- >     RD: 10.0.250.12:10007 ip-prefix 10.7.0.0/24
+                           10.0.255.11      -       100     0      65001 i
+- >     RD: 10.0.250.13:10007 ip-prefix 10.170.0.0/24
+                           10.0.255.12      -       100     0      65002 i
+- >     RD: 10.0.250.14:10007 ip-prefix 10.170.0.0/24
+                           10.0.255.12      -       100     0      65002 i
 
 spine2#show ip route vrf green
 % IP Routing table for VRF green does not exist.
@@ -389,10 +398,10 @@ In our first scenario:
 In our second scenario, let’s add a variable into the mix:
 
 - Same as before, but we need to extend Layer 2 for a VLAN between VTEPs (i.e. L2 VXLAN)  
-    ○ VTEP1 is configured with an SVI for VLAN 7  
-    ○ VTEP2 is configured with an SVI for VLAN 7  
-    ○ The L3 VNI still exists for VRF green  
-    ○ An L2 VNI is implemented for VLAN 7
+   ○ VTEP1 is configured with an SVI for VLAN 7  
+   ○ VTEP2 is configured with an SVI for VLAN 7  
+   ○ The L3 VNI still exists for VRF green  
+   ○ An L2 VNI is implemented for VLAN 7
 
 In an Asymmetrical IRB environment, we would expect traffic from host 10.7.0.10 to 10.7.0.20 to be ingress routed at the local VTEP and then take the L2 VXLAN path to the remote VTEP. However, since these SVIs are configured inside of a VRF that is shared across the EVPN fabric, we can route the traffic symmetrically via the VRF.
 
@@ -403,12 +412,11 @@ Traffic from 10.7.0.10 to 10.7.0.20 using L2 VXLAN:
 The MAC address of 10.7.0.10 is advertised into EVPN with both the L2 VNI and the L3 VNI:
 
 BGP routing table entry for mac-ip 562e.665b.dc1b 10.7.0.10, Route Distinguisher: 65001:100070
- Paths: 1 available
-  Local
-    - from - (0.0.0.0)
-      Origin IGP, metric -, localpref -, weight 0, valid, local, best
-      Extended Community: Route-Target-AS:7:10007 Route-Target-AS:7:100070 TunnelEncap:tunnelTypeVxlan EvpnRouterMac:0c:56:33:7c:d0:51
-      **VNI: 100070 L3 VNI: 10007** ESI: 0000:0000:0000:0000:0000
+Paths: 1 available
+Local - from - (0.0.0.0)
+Origin IGP, metric -, localpref -, weight 0, valid, local, best
+Extended Community: Route-Target-AS:7:10007 Route-Target-AS:7:100070 TunnelEncap:tunnelTypeVxlan EvpnRouterMac:0c:56:33:7c:d0:51
+**VNI: 100070 L3 VNI: 10007** ESI: 0000:0000:0000:0000:0000
 
 Traffic from 10.7.0.10 to 10.170.0.10 using L3 VXLAN:
 

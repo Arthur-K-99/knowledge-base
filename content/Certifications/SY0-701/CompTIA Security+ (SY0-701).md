@@ -1,0 +1,34 @@
+# Objectives
+- 1.0 General Security Concepts
+	-  1.1 Compare and contrast various types of security controls
+		- Categories (Technical, Managerial, Operational, Physical)
+		- Control types (Preventive, Deterrent, Detective, Corrective, Compensating, Directive)
+	- 1.2 Summarize fundamental security concepts
+		- Confidentiality, Integrity, and Availability (CIA)
+		- Non-­ repudiation
+		- Authentication, Authorization, and Accounting (AAA) (Authenticating people, authenticating systems, authorization models)
+		- Gap analysis
+		- Zero trust (control plane, data plane)
+		- Physical security (bollards, access control vestibule, fencing, video surveillance, security guard, access badge, lighting, sensors)
+		- Deception and disruption technology (honeypot, honeynet, honeyfile, honeytoken)
+	- 1.3 Explain the importance of change management processes and the impact to security
+		- Business processes impacting security operations (approval process, ownership, stakeholders, impact analysis, test results, backout plan, maintenance window, standard operating procedure)
+		- Technical implications (allow lists/deny lists, restricted activities, downtime, service restart, application restart, legacy applications, dependencies)
+		- Documentation (updating diagrams, updating policies/procedures)
+		- Version control
+	- 1.4 Explain the importance of using appropriate cryptographic solutions
+		- Public key infrastructure (PKI) (Public key, private, key, key escrow)
+		- Encryption (Level, transport/communication, asymmetric, symmetric, key exchange, algorithms, key length)
+		- Tools (Trusted Platform Module \[TPM], Hardware security module \[HSM], key management systems, secure enclave)
+		- Obfuscation (Steganography, tokenization, data masking)
+		- Hashing
+		- Salting
+		- Digital Signatures
+		- Key stretching
+		- Blockchain
+		- Open public ledger
+		- Certificates (certificate authorities, certificate revocation lists \[CRLs], Online Certificate Status Protocol \[OCSP], self-­signed, third-­party, root of trust, certificate signing request \[CSR] generation, wildcard)
+- 2.0 Threats, Vulnerabilities, and Mitigations
+- 3.0 Security Architecture
+- 4.0 Security Operations     
+- 5.0 Security Program Management and Oversight 
