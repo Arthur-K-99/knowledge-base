@@ -1,2 +1,2 @@
 
-- [[Programming/Leetcode/index|index]]
+- [[Programming/Leetcode/index|Leetcode]]
