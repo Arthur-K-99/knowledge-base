@@ -4,3 +4,5 @@
 - [ ] Do Leetcode
 - [ ] Do TryHackMe
 - [ ] Learn [NetBox](https://netboxlabs.com/oss/netbox/)
+- [ ] ENCOR
+- [ ] ENARSI
