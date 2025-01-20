@@ -1,8 +1,6 @@
 ---
 title: Knowledge Base
 ---
-TODO:
-- [ ] Organize Topics and add short descriptions
 
 # Topics
 - [[Networking/index|Networking]] | Topics about Networking, Guides and Labs
