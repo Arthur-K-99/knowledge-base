@@ -1,3 +1,6 @@
+---
+title: "Chapter 1: IPv4/IPv6 Addressing and Routing Review"
+---
 
 # Content
 
@@ -19,17 +22,13 @@
 
 ## IPv4 Addressing
 
-- Just as your personal street address uniquely defines where you live, an IPv4 address
-uniquely defines where a device resides in a network.
+- Just as your personal street address uniquely defines where you live, an IPv4 address uniquely defines where a device resides in a network.
 
-- If devices are addressed incorrectly, they may not receive the packets that are
-intended for them.
+- If devices are addressed incorrectly, they may not receive the packets that are intended for them.
 
-- It is imperative that you have a solid understanding of IPv4 addressing and how to
-verify that devices are addressed correctly on a network.
+- It is imperative that you have a solid understanding of IPv4 addressing and how to verify that devices are addressed correctly on a network.
 
-- This section provides a review of IPv4 addressing and discusses issues you might
-face and how to troubleshoot them.
+- This section provides a review of IPv4 addressing and discusses issues you might face and how to troubleshoot them.
 
 ### IPv4 Addressing Issues
 

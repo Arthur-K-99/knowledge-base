@@ -1,9 +1,14 @@
 
 - [x] Finish [[Lab - Implement Inter-VLAN Routing]]
-- [ ] Finish [[Networking/Labs/Lab - Observe STP Topology Changes and Implement RSTP|Lab - Observe STP Topology Changes and Implement RSTP]]
+- [x] Finish [[Lab - Observe STP Topology Changes and Implement RSTP|Lab - Observe STP Topology Changes and Implement RSTP]]
 - [ ] Add the ENCOR and ENARSI files (They're on Google Drive)
 - [ ] Do Leetcode
-- [ ] Do TryHackMe
+- [ ] Do [[https://tryhackme.com/r/hacktivities/search?page=1&roomType=walkthrough&status=not-completed&contentSubType=subscription&order=newest|TryHackMe]]
+- [ ] Do [[https://u.cisco.com/for-you|Cisco U]]
+- [ ] Do Microsoft Learn
+- [ ] Learn Azure
+- [ ] Learn Ansible
 - [ ] Learn [NetBox](https://netboxlabs.com/oss/netbox/)
 - [ ] Study ENCOR
 - [ ] Study ENARSI
+- [ ] Read Science Journal
