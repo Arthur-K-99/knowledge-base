@@ -271,7 +271,7 @@ Example 2-16 provides detailed EIGRP interface output.
 
 ![[Pasted image 20250222181145.png]]
 
-## Path Metric Calculations
+## Path Metric Calculation
 
 - Metric calculation is a critical component for any routing protocol. 
 
