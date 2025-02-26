@@ -24,9 +24,9 @@ title: Advanced EIGRP
 
 ### EIGRP Hello and Hold Timer Value Verification
 
-- The hello timer is modified with the interface command**ip hello-interval eigrp** _as-numberseconds_, and the hold timer is modified with the command **ip hold-time eigrp**_as-number seconds_ when using EIGRP classic configuration mode. 
+- The hello timer is modified with the interface command **ip hello-interval eigrp** _as-number seconds_, and the hold timer is modified with the command **ip hold-time eigrp** _as-number seconds_ when using EIGRP classic configuration mode. 
 
-- The EIGRP hello and hold timers are verified by viewing the EIGRP interfaces with the command **show ip eigrp interfaces detail**[_interface-id_].
+- The EIGRP hello and hold timers are verified by viewing the EIGRP interfaces with the command **show ip eigrp interfaces detail** \[_interface-id_].
 
 - Example 3-1 demonstrates changing the EIGRP hello interval to 3 seconds and the hold time to 15 seconds for R1.
 

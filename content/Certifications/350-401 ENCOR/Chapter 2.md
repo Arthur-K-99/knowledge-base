@@ -315,6 +315,7 @@ RSTP defines three types of ports that are used for building the STP topology:
 | **Edge Port**           | A port at the edge of the network where hosts connect to the Layer 2 topology with one interface and cannot form a loop. These ports directly correlate to ports that have the STP portfast feature enabled.                                                         |
 | **Root port**           | A port that has the best path cost toward the root bridge. There can be only one root port on a switch.                                                                                                                                                              |
 | **Point-to-Point port** | Any port that connects to another RSTP switch with full duplex. Full-duplex links do not permit more than two devices on a network segment, so determining whether a link is full duplex is the fastest way to check the feasibility of being connected to a switch. |
+|                         |                                                                                                                                                                                                                                                                      |
 Multi-access connections (Hubs) must use 802.1D.
 
 ### Building the RSTP Topology
