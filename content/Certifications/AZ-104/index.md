@@ -1,0 +1,2 @@
+* [Overview](https://learn.microsoft.com/en-us/credentials/certifications/azure-administrator/?practice-assessment-type=certification)
+* [INE AZ-104 Path](https://my.ine.com/Cloud/learning-paths/80e27ee8-a2dc-4758-90c9-02714b31d2fa/az-104-microsoft-certified-azure-administrator-associate)

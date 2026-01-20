@@ -1,6 +1,4 @@
 
-- [x] Finish [[Lab - Implement Inter-VLAN Routing]]
-- [x] Finish [[Lab - Observe STP Topology Changes and Implement RSTP|Lab - Observe STP Topology Changes and Implement RSTP]]
 - [ ] Add the ENCOR and ENARSI files (They're on Google Drive)
 - [ ] Do Leetcode
 - [ ] Do [[https://tryhackme.com/r/hacktivities/search?page=1&roomType=walkthrough&status=not-completed&contentSubType=subscription&order=newest|TryHackMe]]
