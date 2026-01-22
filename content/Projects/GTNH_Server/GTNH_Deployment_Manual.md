@@ -63,7 +63,7 @@ This controls the auto-restart logic and JVM flags.
 
 Ini, TOML
 
-```bash
+```
 [Unit]
 Description=GregTech New Horizons Server
 After=network.target
@@ -90,13 +90,26 @@ RestartSec=10
 WantedBy=multi-user.target
 ```
 
-### 3.2 Backup Script (`/home/gtnh/push-backups.sh`)
+### 3.2 Backup Script & Rclone (`/home/gtnh/push-backups.sh`)
 
 Handles off-site replication to Google Drive via Rclone.
 
+**Critical Setup Step:** Rclone config is user-specific. Since the script runs as `gtnh`, the config file must exist in `/home/gtnh/.config/rclone/`.
+
 Bash
 
-```bash
+```
+# Fix Permissions Command
+sudo mkdir -p /home/gtnh/.config/rclone
+sudo cp /home/ubuntu/.config/rclone/rclone.conf /home/gtnh/.config/rclone/
+sudo chown -R gtnh:gtnh /home/gtnh/.config/
+```
+
+**The Script:**
+
+Bash
+
+```
 #!/bin/bash
 LOCAL_DIR="/home/gtnh/backups"
 REMOTE_NAME="gdrive"
@@ -148,7 +161,7 @@ Oracle Cloud defaults to MTU 9000. Public internet uses MTU 1500. This mismatch 
 
 YAML
 
-```yaml
+```
 network:
   version: 2
   ethernets:
@@ -228,4 +241,4 @@ To ensure the bill remains $0.00:
 
 **Next Service Date:** Indefinite.
 
-**Documentation Updated:** Jan 21, 2026 (v1.1 - Added MTU Config).
+**Documentation Updated:** Jan 21, 2026 (v1.2 - Added Rclone Permissions).
