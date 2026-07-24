@@ -136,21 +136,59 @@ sudo chown -R gtnh:gtnh /home/gtnh/.config/
 
 ```
 
-**The Script:** Runs via cron at 04:30 daily (`crontab -e` as `gtnh` user).
+**The Script:** Runs via cron at 04:30 daily (`crontab -e` as `gtnh` user). It removes remote backups older than 14 days, but always preserves the newest remote backup even when no recent backup has been uploaded.
 
 ```bash
 #!/bin/bash
+
 LOCAL_DIR="/home/gtnh/backups"
 REMOTE_NAME="gdrive"
 REMOTE_DIR="GTNH_Backups"
-RETENTION_DAYS="60"
+RETENTION_DAYS="14"
 
-rclone copy $LOCAL_DIR $REMOTE_NAME:$REMOTE_DIR --transfers=4 --checkers=8 --stats=1m -v
-if [ $? -eq 0 ]; then
-    rclone delete --min-age ${RETENTION_DAYS}d $REMOTE_NAME:$REMOTE_DIR
+REMOTE="${REMOTE_NAME}:${REMOTE_DIR}"
+
+echo "Starting upload to Google Drive..."
+
+if rclone copy "$LOCAL_DIR" "$REMOTE" \
+    --transfers=4 \
+    --checkers=8 \
+    --stats=1m \
+    -v
+then
+    echo "Upload successful."
+
+    # Find the newest backup currently on Google Drive.
+    NEWEST_BACKUP=$(
+        rclone lsf "$REMOTE" \
+            --recursive \
+            --files-only \
+            --format "tp" \
+            --time-format unix |
+        sort -t';' -k1,1nr |
+        head -n 1 |
+        cut -d';' -f2-
+    )
+
+    if [[ -n "$NEWEST_BACKUP" ]]; then
+        echo "Newest backup protected: $NEWEST_BACKUP"
+        echo "Deleting other backups older than $RETENTION_DAYS days..."
+
+        rclone delete "$REMOTE" \
+            --min-age "${RETENTION_DAYS}d" \
+            --exclude "$NEWEST_BACKUP" \
+            -v
+    else
+        echo "No remote backups found; skipping cleanup."
+    fi
+else
+    echo "Upload failed. Cloud cleanup skipped."
+    exit 1
 fi
 
 ```
+
+This retention logic assumes that each backup is a single file, such as a ZIP archive. It handles paths and filenames containing spaces, never runs cleanup after a failed upload, and keeps at least the newest file on Google Drive regardless of its age.
 
 ---
 
